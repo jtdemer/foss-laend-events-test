@@ -1,0 +1,92 @@
+
+name: Event einreichen
+description: Veranstaltung rund um FOSS in Baden‑Württemberg melden
+title: "[Event] {{ Titel }} — {{ Stadt/Ort }}"
+labels: ["event:submitted"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Titel
+      description: Kurzer, prägnanter Titel
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Kurzbeschreibung
+    validations:
+      required: true
+
+  - type: input
+    id: start
+    attributes:
+      label: Beginn (ISO, z.B. 2025-12-12T18:00:00+01:00)
+    validations:
+      required: true
+
+  - type: input
+    id: end
+    attributes:
+      label: Ende (optional, ISO)
+    validations:
+      required: false
+
+  - type: input
+    id: timezone
+    attributes:
+      label: Zeitzone (IANA, z.B. Europe/Berlin)
+      placeholder: Europe/Berlin
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Ort (Adresse oder Online-Link)
+    validations:
+      required: true
+
+  - type: input
+    id: city
+    attributes:
+      label: Stadt/Ort in BW
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Kategorie
+      options:
+        - Meetup
+        - Workshop
+        - Konferenz
+        - Hackathon
+        - Vortrag
+        - Sonstiges
+    validations:
+      required: true
+
+  - type: input
+    id: organizer
+    attributes:
+      label: Veranstalter (Person/Firma)
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Event-Webseite/Anmeldung
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Einverständnis
+      options:
+        - label: Ich bestätige, dass die Angaben korrekt sind und öffentlich erscheinen dürfen.
+          required: true

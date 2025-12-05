@@ -1,0 +1,43 @@
+
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>FOSS LÄND – Community-Kalender</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+  <header>
+    <h1>FOSS LÄND – Veranstaltungen in Baden‑Württemberg</h1>
+    <p>
+      Reiche deine Veranstaltung über unser <a href="../issues/new?template=event.yml">Event‑Formular</a> ein.
+    </p>
+  </header>
+
+  <section>
+    <h2>Kalender abonnieren</h2>
+    <p>
+      <a href="../events.ics" download>events.ics herunterladen</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Kalender‑Ansicht (Open Web Calendar)</h2>
+    <p class="hint">
+      Die eingebettete Ansicht nutzt <em>Open Web Calendar</em> – eine FOSS‑Lösung zum Anzeigen von ICS‑Kalendern.
+    </p>
+    <iframe
+      title="FOSS LÄND Kalender"
+      style="width:100%; height:70vh; border:1px solid #ddd; border-radius:8px;"
+      src="https://open-web-calendar.quelltext.eu/embed/?title=FOSS%20L%C3%84ND%20Kalender&url=REPO_RAW_EVENTS_ICS&timezone=Europe%2FBerlin&initialView=month">
+    </iframe>
+  </section>
+
+  <footer>
+    <small>
+      Powered by GitHub Issues & Actions (IssueOps Parser, GitEvents .ics) – Open Web Calendar Embed.
+    </small>
+  </footer>
+</body>
+</html>

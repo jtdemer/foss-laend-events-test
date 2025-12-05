@@ -1,0 +1,40 @@
+
+name: Validate Event Issues
+on:
+  issues:
+    types: [opened, edited]
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse Issue Form -> JSON
+        id: parse
+        uses: issue-ops/parser@v1
+        with:
+          body: ${{ github.event.issue.body }}
+
+      - name: Basic checks
+        id: checks
+        run: |
+          echo '${{ steps.parse.outputs.json }}' > event.json
+          node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('event.json','utf8'));
+            const required = ['title','description','start','timezone','location','city','category','organizer','url'];
+            const missing = required.filter(k => !(k in data) || !String(data[k]).trim());
+            if (missing.length) {
+              console.error('Fehlende Felder:', missing);
+              process.exit(1);
+            }
+          "
+
+      - name: Label as approved
+        if: success()
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: "event:approved"
