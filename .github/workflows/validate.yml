@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Parse Issue Form -> JSON
         id: parse
-        uses: zentered/issue-forms-body-parser@v1
+        uses: zentered/issue-forms-body-parser@v2.2.0
         with:
           body: ${{ github.event.issue.body }}
 
