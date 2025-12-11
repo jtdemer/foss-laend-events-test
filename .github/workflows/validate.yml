@@ -1,8 +1,10 @@
 
 name: Validate Event Issues
+
 on:
   issues:
     types: [opened, edited]
+
 permissions:
   issues: write
   contents: read
@@ -11,29 +13,55 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+      # 0) Früher Check: Body muss überhaupt existieren
+      - name: Ensure issue body exists
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          if [ -z "${BODY// }" ]; then
+            echo "❌ Issue body ist leer. Bitte das 'Event einreichen'-Formular nutzen."
+            exit 1
+          fi
+
+      # 1) Parser: zentered (korrekter Tag + Output 'data')
       - name: Parse Issue Form -> JSON
         id: parse
         uses: zentered/issue-forms-body-parser@v2.2.0
         with:
           body: ${{ github.event.issue.body }}
 
-      - name: Basic checks
-        id: checks
+      # 2) Guard: Parser-Output darf nicht leer sein
+      - name: Guard parsed JSON presence
+        env:
+          JSON: ${{ toJSON(steps.parse.outputs.data) }}
         run: |
-          echo '${{ steps.parse.outputs.json }}' > event.json
+          if [ -z "${JSON// }" ] || [ "${JSON}" = "null" ]; then
+            echo "❌ Parser-Ausgabe leer oder 'null'. Wurde das Issue-Formular verwendet?"
+            echo "ℹ️ Erzeuge das Issue über 'New issue' → 'Event einreichen' (Formular), nicht als Blank Issue."
+            exit 1
+          fi
+          echo "$JSON" > event.json
+          echo "✅ Parser-Output geschrieben: event.json"
+
+      # 3) Pflichtfelder prüfen
+      - name: Basic checks
+        run: |
           node -e "
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('event.json','utf8'));
             const required = ['title','description','start','timezone','location','city','category','organizer','url'];
             const missing = required.filter(k => !(k in data) || !String(data[k]).trim());
             if (missing.length) {
-              console.error('Fehlende Felder:', missing);
+              console.error('❌ Fehlende Felder:', missing);
               process.exit(1);
+            } else {
+              console.log('✅ Validierung OK');
             }
           "
 
+      # 4) Automatisch freigeben, wenn Checks ok
       - name: Label as approved
-        if: success()
+        if: ${{ success() }}
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
