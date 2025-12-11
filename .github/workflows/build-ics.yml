@@ -1,34 +1,49 @@
 
 name: Build & Publish ICS
+
 on:
   issues:
     types: [labeled]
-#  schedule:
-#    - cron: "0 * * * *"
+  schedule:
+    - cron: "0 * * * *"   # stündlich neu generieren
+
 permissions:
   contents: write
   issues: read
 
 jobs:
   ics:
+    # Nur ausführen, wenn das Label "event:approved" gesetzt wurde
     if: contains(github.event.issue.labels.*.name, 'event:approved') || github.event_name == 'schedule'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Generate ICS from approved issues
-        uses: gitevents/ics@1.0.0
+      # GitEvents ICS benötigt Node; der README empfiehlt setup-node
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'   # Action ist auf Node 20 ausgelegt
+
+      # ICS generieren aus den "approved"-Issues
+      - name: Generate events.ics from issues
+        uses: gitevents/ics@v1.3.3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           default-timezone: 'Europe/Berlin'
+          # optional: locations mapping
+          # locations: 'locations.json'
 
+      # Commit & Push der aktualisierten ICS-Datei
       - name: Commit updated calendar
         run: |
-          git config user.name "foss-laend-bot"
-          git config user.email "calendar@foss-laend.example"
           if [ -f "events.ics" ]; then
+            git config user.name "foss-laend-bot"
+            git config user.email "calendar@foss-laend.example"
             git add events.ics
-            git commit -m "Update events.ics"
+            # verhindert Fehler, wenn keine Änderungen vorliegen
+            git diff --cached --quiet || git commit -m "Update events.ics"
             git push
           else
             echo "events.ics not found; skipping commit"
+            exit 1
