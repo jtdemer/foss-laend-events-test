@@ -4,8 +4,8 @@ name: Build & Publish ICS
 on:
   issues:
     types: [labeled]
-  schedule:
-    - cron: "0 * * * *"   # stündlich neu generieren
+#  schedule:
+#    - cron: "0 * * * *"   # stündlich neu generieren
 
 permissions:
   contents: write
