@@ -36,14 +36,22 @@ jobs:
 
       # Commit & Push der aktualisierten ICS-Datei
       - name: Commit updated calendar
+        shell: bash
         run: |
-          if [ -f "events.ics" ]; then
+          set -euo pipefail
+          if [[ -f "events.ics" ]]; then
             git config user.name "foss-laend-bot"
             git config user.email "calendar@foss-laend.example"
             git add events.ics
-            # verhindert Fehler, wenn keine Änderungen vorliegen
-            git diff --cached --quiet || git commit -m "Update events.ics"
-            git push
+            # nur committen, wenn auch Änderungen staged sind
+            if ! git diff --cached --quiet; then
+              git commit -m "Update events.ics"
+              git push
+            else
+              echo "No changes in events.ics; nothing to commit."
+            fi
           else
             echo "events.ics not found; skipping commit"
             exit 1
+          fi
+
