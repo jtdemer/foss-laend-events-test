@@ -1,70 +1,123 @@
 
-- name: Basic checks (robust, no inline quotes)
-  shell: bash
-  run: |
-    node <<'NODE'
-    const fs = require('fs');
+name: Validate Event Issues
 
-    // 1) event.json laden
-    let raw = fs.readFileSync('event.json','utf8');
-    let data;
-    try {
-      data = JSON.parse(raw);
-    } catch (e) {
-      // Falls doppelt serialisiert (z. B. "\"{...}\"")
-      try {
-        data = JSON.parse(JSON.parse(raw));
-      } catch (e2) {
-        console.error('❌ Konnte event.json nicht parsen:', e2.message);
-        process.exit(1);
-      }
-    }
+on:
+  issues:
+    types:
+      - opened
+      - edited
 
-    // 2) Pflichtfelder passend zu EN-Labels in event.yml:
-    const required = [
-      'title',
-      'description',
-      'start',
-      'timezone',
-      'location',
-      'city',
-      'category',
-      'organizer',
-      'url'
-    ];
+permissions:
+  issues: write
+  contents: read
 
-    // 3) Textwert aus Parser-Objekten holen (.text oder content[])
-    const getText = (v) => {
-      if (typeof v === 'string') return v.trim();
-      if (v && typeof v === 'object') {
-        if (typeof v.text === 'string') return v.text.trim();
-        if (Array.isArray(v.content)) return v.content.join(' ').trim();
-      }
-      return '';
-    };
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ensure issue body exists
+        shell: bash
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          if [ -z "${BODY// }" ]; then
+            echo "❌ Issue body ist leer. Bitte das 'Event einreichen'-Formular nutzen."
+            exit 1
+          fi
 
-    // 4) Felder prüfen
-    const missing = required.filter(k => !(k in data) || !getText(data[k]));
-    if (missing.length) {
-      console.error('❌ Fehlende Felder:', missing);
-      process.exit(1);
-    }
+      - name: Parse Issue Form -> JSON
+        id: parse
+        uses: zentered/issue-forms-body-parser@v2.2.0
+        with:
+          body: ${{ github.event.issue.body }}
 
-    // 5) Einverständnis/Consent prüfen (id: consent oder terms)
-    const terms = data['consent'] || data['terms'];
-    let consentOK = false;
-    if (terms && typeof terms === 'object') {
-      if (Array.isArray(terms.list)) {
-        consentOK = terms.list.some(it => it.checked === true);
-      } else {
-        const t = getText(terms);
-        consentOK = /\[x\]/i.test(t);
-      }
-    }
-    if (!consentOK) {
-      console.error('❌ Einverständnis/Consent nicht bestätigt.');
-      process.exit(1);
-    }
+      - name: Guard parsed JSON presence
+        shell: bash
+        env:
+          RAW: ${{ steps.parse.outputs.data }}
+        run: |
+          if [ -z "${RAW// }" ] || [ "${RAW}" = "null" ]; then
+            echo "❌ Parser-Ausgabe leer oder 'null'. Wurde das Issue-Formular verwendet?"
+            exit 1
+          fi
+          printf '%s\n' "${RAW}" > event.json
+          # optional: JSON kurz prüfen, falls jq vorhanden
+          if command -v jq >/dev/null 2>&1; then
+            jq -e . event.json >/dev/null || { echo "❌ Ungültiges JSON in event.json"; cat event.json; exit 1; }
+          fi
+          echo "✅ Parser-Output geschrieben: event.json"
 
-    console.log('✅ Validierung OK');
-    NODE
+      - name: Basic checks (robust, no inline quotes)
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          // event.json laden
+          let raw = fs.readFileSync('event.json','utf8');
+          let data;
+          try { data = JSON.parse(raw); }
+          catch (e) {
+            try { data = JSON.parse(JSON.parse(raw)); }
+            catch (e2) {
+              console.error('❌ Konnte event.json nicht parsen:', e2.message);
+              process.exit(1);
+            }
+          }
+
+          // Pflichtfelder passend zu EN-Labels in event.yml:
+          const required = [
+            'title',
+            'description',
+            'start',
+            'timezone',
+            'location',
+            'city',
+            'category',
+            'organizer',
+            'url'
+          ];
+
+          // Textwert aus Parser-Objekten holen (.text oder content[])
+          const getText = (v) => {
+            if (typeof v === 'string') return v.trim();
+            if (v && typeof v === 'object') {
+              if (typeof v.text === 'string') return v.text.trim();
+              if (Array.isArray(v.content)) return v.content.join(' ').trim();
+              if (Array.isArray(v.list)) { // Checkbox-Liste
+                return v.list.map(it => (it.checked ? '[x] ' : '[ ] ') + (it.text || '')).join('\n').trim();
+              }
+            }
+            return '';
+          };
+
+          const missing = required.filter(k => !(k in data) || !getText(data[k]));
+          if (missing.length) {
+            console.error('❌ Fehlende Felder:', missing);
+            process.exit(1);
+          }
+
+          // Einverständnis/Consent prüfen (id: Consent/Terms)
+          const terms = data['consent'] || data['terms'];
+          let consentOK = false;
+          if (terms && typeof terms === 'object') {
+            if (Array.isArray(terms.list)) {
+              consentOK = terms.list.some(it => it.checked === true);
+            } else {
+              consentOK = /\[x\]/i.test(getText(terms));
+            }
+          }
+          if (!consentOK) {
+            console.error('❌ Einverständnis/Consent nicht bestätigt.');
+            process.exit(1);
+          }
+
+          console.log('✅ Validierung OK');
+          NODE
+
+      - name: Label as approved
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: event:approved
