@@ -1,76 +1,70 @@
 
-name: Validate Event Issues
+- name: Basic checks (robust, no inline quotes)
+  shell: bash
+  run: |
+    node <<'NODE'
+    const fs = require('fs');
 
-on:
-  issues:
-    types: [opened, edited]
+    // 1) event.json laden
+    let raw = fs.readFileSync('event.json','utf8');
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      // Falls doppelt serialisiert (z. B. "\"{...}\"")
+      try {
+        data = JSON.parse(JSON.parse(raw));
+      } catch (e2) {
+        console.error('❌ Konnte event.json nicht parsen:', e2.message);
+        process.exit(1);
+      }
+    }
 
-permissions:
-  issues: write
-  contents: read
+    // 2) Pflichtfelder passend zu EN-Labels in event.yml:
+    const required = [
+      'title',
+      'description',
+      'start',
+      'timezone',
+      'location',
+      'city',
+      'category',
+      'organizer',
+      'url'
+    ];
 
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ensure issue body exists
-        env:
-          BODY: ${{ github.event.issue.body }}
-        run: |
-          if [ -z "${BODY// }" ]; then
-            echo "❌ Issue body ist leer. Bitte das 'Event einreichen'-Formular nutzen."
-            exit 1
-          fi
+    // 3) Textwert aus Parser-Objekten holen (.text oder content[])
+    const getText = (v) => {
+      if (typeof v === 'string') return v.trim();
+      if (v && typeof v === 'object') {
+        if (typeof v.text === 'string') return v.text.trim();
+        if (Array.isArray(v.content)) return v.content.join(' ').trim();
+      }
+      return '';
+    };
 
-      - name: Parse Issue Form -> JSON
-        id: parse
-        uses: zentered/issue-forms-body-parser@v2.2.0
-        with:
-          body: ${{ github.event.issue.body }}
+    // 4) Felder prüfen
+    const missing = required.filter(k => !(k in data) || !getText(data[k]));
+    if (missing.length) {
+      console.error('❌ Fehlende Felder:', missing);
+      process.exit(1);
+    }
 
-      - name: Guard parsed JSON presence
-        env:
-          RAW: ${{ steps.parse.outputs.data }}
-        run: |
-          if [ -z "${RAW// }" ] || [ "${RAW}" = "null" ]; then
-            echo "❌ Parser-Ausgabe leer oder 'null'. Wurde das Issue-Formular verwendet?"
-            exit 1
-          fi
-          # WICHTIG: NICHT toJSON verwenden – direkt schreiben
-          echo "${RAW}" > event.json
-          echo "✅ Parser-Output geschrieben: event.json"
+    // 5) Einverständnis/Consent prüfen (id: consent oder terms)
+    const terms = data['consent'] || data['terms'];
+    let consentOK = false;
+    if (terms && typeof terms === 'object') {
+      if (Array.isArray(terms.list)) {
+        consentOK = terms.list.some(it => it.checked === true);
+      } else {
+        const t = getText(terms);
+        consentOK = /\[x\]/i.test(t);
+      }
+    }
+    if (!consentOK) {
+      console.error('❌ Einverständnis/Consent nicht bestätigt.');
+      process.exit(1);
+    }
 
-      - name: Basic checks (robust)
-        run: |
-          node -e "
-            const fs = require('fs');
-            let raw = fs.readFileSync('event.json','utf8');
-            let data;
-            try {
-              data = JSON.parse(raw);
-            } catch {
-              // Falls doppelt serialisiert (z. B. \"{...}\")
-              data = JSON.parse(JSON.parse(raw));
-            }
-
-            // Pflichtfelder passend zu EN-Labels in event.yml:
-            const required = [
-              'title',
-              'description',
-              'start',
-              'timezone',
-              'location',
-              'city',
-              'category',
-              'organizer',
-              'url'
-            ];
-
-            // Textwert aus Parser-Objekten holen (.text oder content[])
-            const getText = (v) => {
-              if (typeof v === 'string') return v.trim();
-              if (v && typeof v === 'object') {
-                if (typeof v.text === 'string') return v.text.trim();
-                if (Array.isArray(v.content)) return v.content.join(' ').trim();
-              }
-              return '';
+    console.log('✅ Validierung OK');
+    NODE
