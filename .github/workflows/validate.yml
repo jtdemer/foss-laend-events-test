@@ -53,31 +53,24 @@ jobs:
               data = JSON.parse(JSON.parse(raw));
             }
 
-            // Deine aktuellen Keys aus den Überschriften (deutsche Slugs):
+            // Pflichtfelder passend zu EN-Labels in event.yml:
             const required = [
-              'titel',
-              'kurzbeschreibung',
-              'beginn-iso-z-b-2025-12-12-t18-00-00-01-00',
-              'zeitzone-iana-z-b-europe-berlin',
-              'ort-adresse-oder-online-link',
-              'stadt-ort-in-bw',
-              'kategorie',
-              'veranstalter-person-firma',
-              'event-webseite-anmeldung'
+              'title',
+              'description',
+              'start',
+              'timezone',
+              'location',
+              'city',
+              'category',
+              'organizer',
+              'url'
             ];
 
-            const missing = required.filter(k => !(k in data) || !String(data[k]?.text || '').trim());
-            if (missing.length) {
-              console.error('❌ Fehlende oder leere Felder (via .text):', missing);
-              process.exit(1);
-            } else {
-              console.log('✅ Validierung OK');
-            }
-          "
-
-      - name: Label as approved
-        if: ${{ success() }}
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: "event:approved"
+            // Textwert aus Parser-Objekten holen (.text oder content[])
+            const getText = (v) => {
+              if (typeof v === 'string') return v.trim();
+              if (v && typeof v === 'object') {
+                if (typeof v.text === 'string') return v.text.trim();
+                if (Array.isArray(v.content)) return v.content.join(' ').trim();
+              }
+              return '';
