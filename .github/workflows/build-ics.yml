@@ -11,30 +11,77 @@ permissions:
   contents: write
   issues: read
 
+
 jobs:
   ics:
-    # Nur ausführen, wenn das Label "event:approved" gesetzt wurde
     if: contains(github.event.issue.labels.*.name, 'event:approved') || github.event_name == 'schedule'
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      # GitEvents ICS benötigt Node; der README empfiehlt setup-node
       - uses: actions/setup-node@v3
         with:
-          node-version: '20'   # Action ist auf Node 20 ausgelegt
+          node-version: '20'
 
-      # ICS generieren aus den "approved"-Issues
+      # Preview der genehmigten Issues & geparsten Felder ---
+      - name: Preview parsed event fields (what will go into ICS)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          echo "🔎 Lade offene Issues mit Label 'event:approved'…"
+          gh api -X GET "repos/${REPO}/issues?state=open&labels=event:approved&per_page=50" > issues.json
+          echo "Gefundene Issues:"
+          jq -r '.[].number' issues.json || true
+
+          node <<'NODE'
+          const fs = require('fs');
+          const issues = JSON.parse(fs.readFileSync('issues.json','utf8'));
+
+          // kleine Helper-Funktion: Markdown-Body nach ### Headings durchsuchen
+          const pick = (body, heading) => {
+            if (!body) return '';
+            const regex = new RegExp(`^###\\s*${heading}\\s*\\n+([\\s\\S]*?)(?:\\n###\\s|$)`, 'mi');
+            const m = body.match(regex);
+            return m ? m[1].trim() : '';
+          };
+
+          const fields = ["Title","Description","Start","End","Timezone","Location","City","Category","Organizer","URL"];
+          const rows = [];
+          for (const it of issues) {
+            const row = { number: it.number, html_url: it.html_url };
+            for (const f of fields) row[f.toLowerCase()] = pick(it.body, f);
+            rows.push(row);
+          }
+
+          if (rows.length === 0) {
+            console.log("⚠️  Keine offenen Issues mit Label 'event:approved' gefunden.");
+          } else {
+            console.log("🧾 Vorschau (gekürzt):");
+            for (const r of rows) {
+              console.log(`- #${r.number} → ${r.html_url}`);
+              console.log(`  Title:     ${r.title}`);
+              console.log(`  Start:     ${r.start}   End: ${r.end}   TZ: ${r.timezone}`);
+              console.log(`  City:      ${r.city}    Location: ${r.location}`);
+              console.log(`  URL:       ${r.url}`);
+              console.log(`  Category:  ${r.category}   Organizer: ${r.organizer}`);
+              console.log(`  Description: ${r.description.substring(0,120).replace(/\n/g,' ')}${r.description.length>120?'…':''}`);
+              console.log('');
+            }
+          }
+          NODE
+
+      # --- Bestehender ICS-Build ---
       - name: Generate events.ics from issues
         uses: gitevents/ics@v1.3.3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           default-timezone: 'Europe/Berlin'
-          # optional: locations mapping
           # locations: 'locations.json'
 
-      # Commit & Push der aktualisierten ICS-Datei
       - name: Commit updated calendar
         shell: bash
         run: |
@@ -43,7 +90,6 @@ jobs:
             git config user.name "foss-laend-bot"
             git config user.email "calendar@foss-laend.example"
             git add events.ics
-            # nur committen, wenn auch Änderungen staged sind
             if ! git diff --cached --quiet; then
               git commit -m "Update events.ics"
               git push
@@ -54,4 +100,3 @@ jobs:
             echo "events.ics not found; skipping commit"
             exit 1
           fi
-
