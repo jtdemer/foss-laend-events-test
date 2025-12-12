@@ -41,10 +41,6 @@ jobs:
             exit 1
           fi
           printf '%s\n' "${RAW}" > event.json
-          # optional: JSON kurz prüfen, falls jq vorhanden
-          if command -v jq >/dev/null 2>&1; then
-            jq -e . event.json >/dev/null || { echo "❌ Ungültiges JSON in event.json"; cat event.json; exit 1; }
-          fi
           echo "✅ Parser-Output geschrieben: event.json"
 
       - name: Basic checks (robust, no inline quotes)
@@ -65,50 +61,38 @@ jobs:
             }
           }
 
-          // Pflichtfelder passend zu EN-Labels in event.yml:
-          const required = [
-            'title',
-            'description',
-            'start',
-            'timezone',
-            'location',
-            'city',
-            'category',
-            'organizer',
-            'url'
-          ];
+          // Pflichtfelder passend zu den Headings:
+          const required = ['title','description','date','time','location','city','url'];
 
-          // Textwert aus Parser-Objekten holen (.text oder content[])
           const getText = (v) => {
             if (typeof v === 'string') return v.trim();
             if (v && typeof v === 'object') {
               if (typeof v.text === 'string') return v.text.trim();
               if (Array.isArray(v.content)) return v.content.join(' ').trim();
-              if (Array.isArray(v.list)) { // Checkbox-Liste
-                return v.list.map(it => (it.checked ? '[x] ' : '[ ] ') + (it.text || '')).join('\n').trim();
-              }
             }
             return '';
           };
 
+          // Keys sind "slugified": Title -> "title", Date -> "date", ...
           const missing = required.filter(k => !(k in data) || !getText(data[k]));
           if (missing.length) {
             console.error('❌ Fehlende Felder:', missing);
             process.exit(1);
           }
 
-          // Einverständnis/Consent prüfen (id: Consent/Terms)
-          const terms = data['consent'] || data['terms'];
-          let consentOK = false;
-          if (terms && typeof terms === 'object') {
-            if (Array.isArray(terms.list)) {
-              consentOK = terms.list.some(it => it.checked === true);
-            } else {
-              consentOK = /\[x\]/i.test(getText(terms));
-            }
+          // Date validieren: YYYY-MM-DD
+          const date = getText(data['date']);
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            console.error('❌ Ungültiges Datum (erwartet YYYY-MM-DD):', date);
+            process.exit(1);
           }
-          if (!consentOK) {
-            console.error('❌ Einverständnis/Consent nicht bestätigt.');
+
+          // Time validieren: "HH:MM" oder "HH:MM–HH:MM" (mit EN-Dash oder Bindestrich)
+          const time = getText(data['time']);
+          const dash = '[–-]'; // EN-Dash oder Bindestrich
+          const timeRe = new RegExp(`^\\d{2}:\\d{2}(${dash}\\d{2}:\\d{2})?$`);
+          if (!timeRe.test(time)) {
+            console.error('❌ Ungültige Zeit (erwartet HH:MM oder HH:MM–HH:MM):', time);
             process.exit(1);
           }
 
