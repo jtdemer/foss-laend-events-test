@@ -3,6 +3,7 @@ name: Event einreichen
 description: Veranstaltung rund um FOSS in Baden‑Württemberg melden
 title: "[Event] {{ Title }} — {{ City }}"
 labels: ["event:submitted"]
+
 body:
   - type: input
     id: title
@@ -21,27 +22,20 @@ body:
       required: true
 
   - type: input
-    id: start
+    id: date
     attributes:
-      label: Start
-      description: Beginn (ISO, z.B. 2025-12-12T18:00:00+01:00)
+      label: Date
+      description: Datum (Format: YYYY-MM-DD)
+      placeholder: "2025-12-20"
     validations:
       required: true
 
   - type: input
-    id: end
+    id: time
     attributes:
-      label: End
-      description: Ende (optional, ISO)
-    validations:
-      required: false
-
-  - type: input
-    id: timezone
-    attributes:
-      label: Timezone
-      description: Zeitzone (IANA, z.B. Europe/Berlin)
-      placeholder: Europe/Berlin
+      label: Time
+      description: "Startzeit oder Zeitspanne (z. B. 18:00 oder 18:00–20:00)"
+      placeholder: "18:00–20:00"
     validations:
       required: true
 
@@ -49,7 +43,7 @@ body:
     id: location
     attributes:
       label: Location
-      description: Ort (Adresse oder Online-Link)
+      description: Ort/Adresse oder Online‑Link
     validations:
       required: true
 
@@ -57,30 +51,7 @@ body:
     id: city
     attributes:
       label: City
-      description: Stadt/Ort in BW
-    validations:
-      required: true
-
-  - type: dropdown
-    id: category
-    attributes:
-      label: Category
-      description: Kategorie (de)
-      options:
-        - Meetup
-        - Workshop
-        - Konferenz
-        - Hackathon
-        - Vortrag
-        - Sonstiges
-    validations:
-      required: true
-
-  - type: input
-    id: organizer
-    attributes:
-      label: Organizer
-      description: Veranstalter (Person/Firma)
+      description: Stadt
     validations:
       required: true
 
@@ -88,15 +59,7 @@ body:
     id: url
     attributes:
       label: URL
-      description: Event-Webseite/Anmeldung
+      description: Webseite/Anmeldung
+      placeholder: "https://example.org/anmeldung"
     validations:
       required: true
-
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Consent
-      description: Einverständnis
-      options:
-        - label: Ich bestätige, dass die Angaben korrekt sind und öffentlich erscheinen dürfen.
-          required: true
