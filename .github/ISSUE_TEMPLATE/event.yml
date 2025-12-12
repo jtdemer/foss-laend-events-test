@@ -1,42 +1,46 @@
 
 name: Event einreichen
 description: Veranstaltung rund um FOSS in Baden‑Württemberg melden
-title: "[Event] {{ Titel }} — {{ Stadt/Ort }}"
+title: "[Event] {{ Title }} — {{ City }}"
 labels: ["event:submitted"]
 body:
   - type: input
     id: title
     attributes:
-      label: Titel
-      description: Kurzer, prägnanter Titel
+      label: Title
+      description: Titel (de)
     validations:
       required: true
 
   - type: textarea
     id: description
     attributes:
-      label: Kurzbeschreibung
+      label: Description
+      description: Kurzbeschreibung (de)
     validations:
       required: true
 
   - type: input
     id: start
     attributes:
-      label: Beginn (ISO, z.B. 2025-12-12T18:00:00+01:00)
+      label: Start
+      description: Beginn (ISO, z.B. 2025-12-12T18:00:00+01:00)
     validations:
       required: true
 
   - type: input
     id: end
     attributes:
-      label: Ende (optional, ISO)
+      label: End
+      description: Ende (optional, ISO)
     validations:
       required: false
 
   - type: input
     id: timezone
     attributes:
-      label: Zeitzone (IANA, z.B. Europe/Berlin)
+      label: Timezone
+      description: Zeitzone (IANA, z.B. Europe/Berlin)
       placeholder: Europe/Berlin
     validations:
       required: true
@@ -44,21 +48,24 @@ body:
   - type: input
     id: location
     attributes:
-      label: Ort (Adresse oder Online-Link)
+      label: Location
+      description: Ort (Adresse oder Online-Link)
     validations:
       required: true
 
   - type: input
     id: city
     attributes:
-      label: Stadt/Ort in BW
+      label: City
+      description: Stadt/Ort in BW
     validations:
       required: true
 
   - type: dropdown
     id: category
     attributes:
-      label: Kategorie
+      label: Category
+      description: Kategorie (de)
       options:
         - Meetup
         - Workshop
@@ -72,21 +79,24 @@ body:
   - type: input
     id: organizer
     attributes:
-      label: Veranstalter (Person/Firma)
+      label: Organizer
+      description: Veranstalter (Person/Firma)
     validations:
       required: true
 
   - type: input
     id: url
     attributes:
-      label: Event-Webseite/Anmeldung
+      label: URL
+      description: Event-Webseite/Anmeldung
     validations:
       required: true
 
   - type: checkboxes
     id: terms
     attributes:
-      label: Einverständnis
+      label: Consent
+      description: Einverständnis
       options:
         - label: Ich bestätige, dass die Angaben korrekt sind und öffentlich erscheinen dürfen.
           required: true
