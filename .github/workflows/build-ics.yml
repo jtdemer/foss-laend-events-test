@@ -74,6 +74,33 @@ jobs:
           }
           NODE
 
+# --- debug
+      - name: Fetch issues (open + approved)
+        env:
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -H "Authorization: token $TOKEN" \
+            "https://api.github.com/repos/$REPO/issues?state=open&labels=event:approved&per_page=100" \
+            > issues.json
+          echo "Fetched issues count:"
+          jq 'length' issues.json
+          echo "Titles + labels:"
+          jq -r '.[] | "\(.number)  \(.title)  [\(.labels|map(.name)|join(", "))]"' issues.json
+
+      - name: Abort if no approved issues
+        run: |
+          cnt=$(jq 'length' issues.json)
+          if [ "$cnt" -eq 0 ]; then
+            echo "::warning::No open issues with label event:approved. ICS will be empty."
+
+
+
+
+
+
+          
+
       # --- Bestehender ICS-Build ---
       - name: Generate events.ics from issues
         uses: gitevents/ics@v1.4.3
