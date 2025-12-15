@@ -76,7 +76,7 @@ jobs:
 
       # --- Bestehender ICS-Build ---
       - name: Generate events.ics from issues
-        uses: gitevents/ics@v1.3.3
+        uses: gitevents/ics@v1.4.3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           default-timezone: 'Europe/Berlin'
