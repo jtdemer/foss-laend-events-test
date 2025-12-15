@@ -109,97 +109,97 @@ jobs:
 # --- eigenes parsen und ICS schreiben
 
 
-          - name: Parse Issue bodies (line-by-line headings -> events.json)
-            shell: bash
-            run: |
-              set -euo pipefail
-              python3 - << 'PY'
-              import json, re
-              
-              HEADING_MAP = {
-                  # englisch/deutsch Aliase -> kanonische Keys
-                  'title': 'title', 'titel': 'title',
-                  'description': 'description', 'kurzbeschreibung': 'description',
-                  'date': 'date', 'datum': 'date',
-                  'time': 'time', 'startzeit': 'time', 'zeit': 'time', 'uhrzeit': 'time',
-                  'location': 'location', 'ort': 'location', 'adresse': 'location',
-                  'city': 'city', 'stadt': 'city',
-                  'url': 'url', 'webseite': 'url', 'anmeldung': 'url', 'link': 'url',
-              }
-              
-              def parse_body_linewise(md: str):
-                  # Normalisiere Zeilenenden
-                  md = md.replace('\r\n', '\n').replace('\r', '\n')
-                  lines = md.split('\n')
-              
-                  data = { 'title':'', 'description':'', 'date':'', 'time':'',
-                           'location':'', 'city':'', 'url':'' }
-              
-                  current_key = None
-                  for i, raw in enumerate(lines):
-                      line = raw.strip()
-              
-                      # Heading? z.B. "### Title", "### Titel", "## City", "#### URL"
-                      m = re.match(r'^#{2,6}\s*(.+?)\s*$', line)
-                      if m:
-                          heading = m.group(1).strip().lower()
-                          # Entferne evtl. Zusatz in Klammern: "Titel (de)"
-                          heading = re.sub(r'\s*\(.*\)\s*$', '', heading)
-                          # Map heading -> canonical key, falls bekannt
-                          current_key = HEADING_MAP.get(heading, None)
-                          continue
-              
-                      # Erste nicht-leere Zeile nach einer erkannten Überschrift -> Wert
-                      if current_key and line:
-                          # Wert nur einmal setzen; danach Schlüssel zurücksetzen
-                          if not data[current_key]:
-                              data[current_key] = line
-                          current_key = None
-                          continue
-              
-                  return data
-              
-              issues = json.load(open("issues.json"))
-              events = []
-              
-              for it in issues:
-                  body = it.get("body") or ""
-                  data = parse_body_linewise(body)
-              
-                  # Debug: zeige geparste Felder im Actions-Log
-                  print("::group::Parsed fields for issue #", it.get("number"))
-                  for k,v in data.items():
-                      print(f"{k}: {v}")
-                  print("::endgroup::")
-              
-                  # Zeit normalisieren und Start/Ende setzen
-                  t = (data.get("time") or "").replace("–","-").replace("—","-")
-                  dtstart = dtend = None
-                  if data.get("date") and t:
-                      if "-" in t:
-                          s, e = [x.strip() for x in t.split("-", 1)]
-                          if s: dtstart = f"{data['date']} {s}"
-                          if e: dtend   = f"{data['date']} {e}"
-                      else:
-                          dtstart = f"{data['date']} {t.strip()}"
-              
-                  events.append({
-                      "number": it["number"],
-                      # Fallback: falls "Title" im Body leer ist, nutze den Issue-Titel
-                      "title": data.get("title") or it["title"],
-                      "description": (data.get("description") or "").replace("\n","\\n"),
-                      "location": data.get("location") or "",
-                      "city": data.get("city") or "",
-                      "url": data.get("url") or "",
-                      "date": data.get("date") or "",
-                      "time": data.get("time") or "",
-                      "dtstart": dtstart,
-                      "dtend": dtend
-                  })
-              
-              with open("events.json","w", encoding="utf-8") as f:
-                  json.dump(events, f, ensure_ascii=False, indent=2)
-              PY
+      - name: Parse Issue bodies (line-by-line headings -> events.json)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - << 'PY'
+          import json, re
+          
+          HEADING_MAP = {
+              # englisch/deutsch Aliase -> kanonische Keys
+              'title': 'title', 'titel': 'title',
+              'description': 'description', 'kurzbeschreibung': 'description',
+              'date': 'date', 'datum': 'date',
+              'time': 'time', 'startzeit': 'time', 'zeit': 'time', 'uhrzeit': 'time',
+              'location': 'location', 'ort': 'location', 'adresse': 'location',
+              'city': 'city', 'stadt': 'city',
+              'url': 'url', 'webseite': 'url', 'anmeldung': 'url', 'link': 'url',
+          }
+          
+          def parse_body_linewise(md: str):
+              # Normalisiere Zeilenenden
+              md = md.replace('\r\n', '\n').replace('\r', '\n')
+              lines = md.split('\n')
+          
+              data = { 'title':'', 'description':'', 'date':'', 'time':'',
+                       'location':'', 'city':'', 'url':'' }
+          
+              current_key = None
+              for i, raw in enumerate(lines):
+                  line = raw.strip()
+          
+                  # Heading? z.B. "### Title", "### Titel", "## City", "#### URL"
+                  m = re.match(r'^#{2,6}\s*(.+?)\s*$', line)
+                  if m:
+                      heading = m.group(1).strip().lower()
+                      # Entferne evtl. Zusatz in Klammern: "Titel (de)"
+                      heading = re.sub(r'\s*\(.*\)\s*$', '', heading)
+                      # Map heading -> canonical key, falls bekannt
+                      current_key = HEADING_MAP.get(heading, None)
+                      continue
+          
+                  # Erste nicht-leere Zeile nach einer erkannten Überschrift -> Wert
+                  if current_key and line:
+                      # Wert nur einmal setzen; danach Schlüssel zurücksetzen
+                      if not data[current_key]:
+                          data[current_key] = line
+                      current_key = None
+                      continue
+          
+              return data
+          
+          issues = json.load(open("issues.json"))
+          events = []
+          
+          for it in issues:
+              body = it.get("body") or ""
+              data = parse_body_linewise(body)
+          
+              # Debug: zeige geparste Felder im Actions-Log
+              print("::group::Parsed fields for issue #", it.get("number"))
+              for k,v in data.items():
+                  print(f"{k}: {v}")
+              print("::endgroup::")
+          
+              # Zeit normalisieren und Start/Ende setzen
+              t = (data.get("time") or "").replace("–","-").replace("—","-")
+              dtstart = dtend = None
+              if data.get("date") and t:
+                  if "-" in t:
+                      s, e = [x.strip() for x in t.split("-", 1)]
+                      if s: dtstart = f"{data['date']} {s}"
+                      if e: dtend   = f"{data['date']} {e}"
+                  else:
+                      dtstart = f"{data['date']} {t.strip()}"
+          
+              events.append({
+                  "number": it["number"],
+                  # Fallback: falls "Title" im Body leer ist, nutze den Issue-Titel
+                  "title": data.get("title") or it["title"],
+                  "description": (data.get("description") or "").replace("\n","\\n"),
+                  "location": data.get("location") or "",
+                  "city": data.get("city") or "",
+                  "url": data.get("url") or "",
+                  "date": data.get("date") or "",
+                  "time": data.get("time") or "",
+                  "dtstart": dtstart,
+                  "dtend": dtend
+              })
+          
+          with open("events.json","w", encoding="utf-8") as f:
+              json.dump(events, f, ensure_ascii=False, indent=2)
+          PY
 
 
 
