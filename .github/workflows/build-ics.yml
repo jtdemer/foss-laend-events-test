@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - << 'PY'
-import json, re
+          import json, re
 
 def parse_heading_body(md: str):
     def grab(h):
