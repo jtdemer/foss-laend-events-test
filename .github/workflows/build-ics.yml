@@ -113,84 +113,84 @@ jobs:
         run: |
           set -euo pipefail
           python3 - << 'PY'
-        import json, re
-        
-        def strip_crlf(s: str) -> str:
-            # Normalisiere CRLF -> LF
-            return s.replace('\r\n', '\n').replace('\r', '\n')
-        
-        def grab_section(md: str, heading_regex: str) -> str:
-            """
-            Sucht eine Überschrift (##...###...) und extrahiert den Abschnitt bis zur nächsten Überschrift.
-            Gibt die ERSTE NICHT-LEERE ZEILE dieses Abschnitts zurück.
-            """
-            md = strip_crlf(md)
-            # Überschrift: mind. zwei oder drei # erlauben, führende/trailing spaces robust
-            pattern = rf"^#{2,6}\s*(?:{heading_regex})\s*$\n+([\s\S]*?)(?=^\s*#{2,6}\s|\Z)"
-            m = re.search(pattern, md, flags=re.IGNORECASE | re.MULTILINE)
-            if not m:
-                return ""
-            block = m.group(1).strip()
-            # Nimm die erste nicht-leere Zeile als Wert
-            for line in block.split("\n"):
-                line = line.strip()
-                if line:
-                    return line
-            return ""
-        
-        def parse_heading_body(md: str):
-            return {
-                "title":       grab_section(md, "Title|Titel"),
-                "description": grab_section(md, "Description|Kurzbeschreibung"),
-                "date":        grab_section(md, "Date|Datum"),
-                "time":        grab_section(md, "Time|Startzeit|Zeit|Uhrzeit"),
-                "location":    grab_section(md, "Location|Ort|Adresse"),
-                "city":        grab_section(md, "City|Stadt"),
-                "url":         grab_section(md, "URL|Webseite|Anmeldung|Link"),
-            }
-        
-        issues = json.load(open("issues.json"))
-        events = []
-        
-        for it in issues:
-            body = it.get("body") or ""
-            data = parse_heading_body(body)
-        
-            # Debug-Logging (optional, hilft beim Abgleich im Actions-Log)
-            print("::group::Parsed fields for issue #", it.get("number"))
-            for k,v in data.items():
-                print(f"{k}: {v}")
-            print("::endgroup::")
-        
-            # Zeit normalisieren: "18:00-20:00" sowie "18:00–20:00" unterstützen
-            t = (data.get("time") or "").replace("–","-").replace("—","-")
-            dtstart = dtend = None
-            if data.get("date") and t:
-                if "-" in t:
-                    s, e = [x.strip() for x in t.split("-", 1)]
-                    if s:
-                        dtstart = f"{data['date']} {s}"
-                    if e:
-                        dtend   = f"{data['date']} {e}"
-                else:
-                    dtstart = f"{data['date']} {t.strip()}"
-        
-            events.append({
-                "number": it["number"],
-                "title": data.get("title") or it["title"],
-                "description": (data.get("description") or "").replace("\n", "\\n"),
-                "location": data.get("location") or "",
-                "city": data.get("city") or "",
-                "url": data.get("url") or "",
-                "date": data.get("date") or "",
-                "time": data.get("time") or "",
-                "dtstart": dtstart,
-                "dtend": dtend
-            })
-        
-        with open("events.json","w", encoding="utf-8") as f:
-            json.dump(events, f, ensure_ascii=False, indent=2)
-        PY
+          import json, re
+          
+          def strip_crlf(s: str) -> str:
+              # Normalisiere CRLF -> LF
+              return s.replace('\r\n', '\n').replace('\r', '\n')
+          
+          def grab_section(md: str, heading_regex: str) -> str:
+              """
+              Sucht eine Überschrift (##...###...) und extrahiert den Abschnitt bis zur nächsten Überschrift.
+              Gibt die ERSTE NICHT-LEERE ZEILE dieses Abschnitts zurück.
+              """
+              md = strip_crlf(md)
+              # Überschrift: mind. zwei oder drei # erlauben, führende/trailing spaces robust
+              pattern = rf"^#{2,6}\s*(?:{heading_regex})\s*$\n+([\s\S]*?)(?=^\s*#{2,6}\s|\Z)"
+              m = re.search(pattern, md, flags=re.IGNORECASE | re.MULTILINE)
+              if not m:
+                  return ""
+              block = m.group(1).strip()
+              # Nimm die erste nicht-leere Zeile als Wert
+              for line in block.split("\n"):
+                  line = line.strip()
+                  if line:
+                      return line
+              return ""
+          
+          def parse_heading_body(md: str):
+              return {
+                  "title":       grab_section(md, "Title|Titel"),
+                  "description": grab_section(md, "Description|Kurzbeschreibung"),
+                  "date":        grab_section(md, "Date|Datum"),
+                  "time":        grab_section(md, "Time|Startzeit|Zeit|Uhrzeit"),
+                  "location":    grab_section(md, "Location|Ort|Adresse"),
+                  "city":        grab_section(md, "City|Stadt"),
+                  "url":         grab_section(md, "URL|Webseite|Anmeldung|Link"),
+              }
+          
+          issues = json.load(open("issues.json"))
+          events = []
+          
+          for it in issues:
+              body = it.get("body") or ""
+              data = parse_heading_body(body)
+          
+              # Debug-Logging (optional, hilft beim Abgleich im Actions-Log)
+              print("::group::Parsed fields for issue #", it.get("number"))
+              for k,v in data.items():
+                  print(f"{k}: {v}")
+              print("::endgroup::")
+          
+              # Zeit normalisieren: "18:00-20:00" sowie "18:00–20:00" unterstützen
+              t = (data.get("time") or "").replace("–","-").replace("—","-")
+              dtstart = dtend = None
+              if data.get("date") and t:
+                  if "-" in t:
+                      s, e = [x.strip() for x in t.split("-", 1)]
+                      if s:
+                          dtstart = f"{data['date']} {s}"
+                      if e:
+                          dtend   = f"{data['date']} {e}"
+                  else:
+                      dtstart = f"{data['date']} {t.strip()}"
+          
+              events.append({
+                  "number": it["number"],
+                  "title": data.get("title") or it["title"],
+                  "description": (data.get("description") or "").replace("\n", "\\n"),
+                  "location": data.get("location") or "",
+                  "city": data.get("city") or "",
+                  "url": data.get("url") or "",
+                  "date": data.get("date") or "",
+                  "time": data.get("time") or "",
+                  "dtstart": dtstart,
+                  "dtend": dtend
+              })
+          
+          with open("events.json","w", encoding="utf-8") as f:
+              json.dump(events, f, ensure_ascii=False, indent=2)
+          PY
 
 
       - name: Sanity check — parsed events
