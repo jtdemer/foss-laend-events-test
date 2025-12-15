@@ -114,51 +114,51 @@ jobs:
           set -euo pipefail
           python3 - << 'PY'
           import json, re
-
-def parse_heading_body(md: str):
-    def grab(h):
-        m = re.search(rf"^###\s*{h}\s*$\n+([^\n].*)", md, flags=re.IGNORECASE|re.MULTILINE)
-        return m.group(1).strip() if m else ""
-    return {
-        "title":       grab("Title|Titel"),
-        "description": grab("Description|Kurzbeschreibung"),
-        "date":        grab("Date|Datum"),
-        "time":        grab("Time|Startzeit"),
-        "location":    grab("Location|Ort"),
-        "city":        grab("City|Stadt"),
-        "url":         grab("URL|Webseite|Anmeldung"),
-    }
-
-issues = json.load(open("issues.json"))
-events = []
-for it in issues:
-    body = it.get("body") or ""
-    data = parse_heading_body(body)
-    t = (data["time"] or "").replace("–","-")
-    dtstart = dtend = None
-    if data["date"] and t:
-        if "-" in t:
-            s,e = [x.strip() for x in t.split("-",1)]
-            dtstart = f"{data['date']} {s}"
-            dtend   = f"{data['date']} {e}"
-        else:
-            dtstart = f"{data['date']} {t.strip()}"
-    events.append({
-        "number": it["number"],
-        "title": data["title"] or it["title"],
-        "description": (data["description"] or "").replace("\n","\\n"),
-        "location": data["location"],
-        "city": data["city"],
-        "url": data["url"],
-        "date": data["date"],
-        "time": data["time"],
-        "dtstart": dtstart,
-        "dtend": dtend
-    })
-
-with open("events.json","w", encoding="utf-8") as f:
-    json.dump(events, f, ensure_ascii=False, indent=2)
-PY
+          
+          def parse_heading_body(md: str):
+              def grab(h):
+                  m = re.search(rf"^###\s*{h}\s*$\n+([^\n].*)", md, flags=re.IGNORECASE|re.MULTILINE)
+                  return m.group(1).strip() if m else ""
+              return {
+                  "title":       grab("Title|Titel"),
+                  "description": grab("Description|Kurzbeschreibung"),
+                  "date":        grab("Date|Datum"),
+                  "time":        grab("Time|Startzeit"),
+                  "location":    grab("Location|Ort"),
+                  "city":        grab("City|Stadt"),
+                  "url":         grab("URL|Webseite|Anmeldung"),
+              }
+          
+          issues = json.load(open("issues.json"))
+          events = []
+          for it in issues:
+              body = it.get("body") or ""
+              data = parse_heading_body(body)
+              t = (data["time"] or "").replace("–","-")
+              dtstart = dtend = None
+              if data["date"] and t:
+                  if "-" in t:
+                      s,e = [x.strip() for x in t.split("-",1)]
+                      dtstart = f"{data['date']} {s}"
+                      dtend   = f"{data['date']} {e}"
+                  else:
+                      dtstart = f"{data['date']} {t.strip()}"
+              events.append({
+                  "number": it["number"],
+                  "title": data["title"] or it["title"],
+                  "description": (data["description"] or "").replace("\n","\\n"),
+                  "location": data["location"],
+                  "city": data["city"],
+                  "url": data["url"],
+                  "date": data["date"],
+                  "time": data["time"],
+                  "dtstart": dtstart,
+                  "dtend": dtend
+              })
+          
+          with open("events.json","w", encoding="utf-8") as f:
+              json.dump(events, f, ensure_ascii=False, indent=2)
+          PY
 
       - name: Sanity check — parsed events
         shell: bash
