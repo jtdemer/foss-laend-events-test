@@ -106,6 +106,144 @@ jobs:
             # exit 1
           fi
 
+# --- eigenes parsen und ICS schreiben
+
+      - name: Parse Issue bodies (### headings -> events.json)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - << 'PY'
+import json, re
+
+def parse_heading_body(md: str):
+    def grab(h):
+        m = re.search(rf"^###\s*{h}\s*$\n+([^\n].*)", md, flags=re.IGNORECASE|re.MULTILINE)
+        return m.group(1).strip() if m else ""
+    return {
+        "title":       grab("Title|Titel"),
+        "description": grab("Description|Kurzbeschreibung"),
+        "date":        grab("Date|Datum"),
+        "time":        grab("Time|Startzeit"),
+        "location":    grab("Location|Ort"),
+        "city":        grab("City|Stadt"),
+        "url":         grab("URL|Webseite|Anmeldung"),
+    }
+
+issues = json.load(open("issues.json"))
+events = []
+for it in issues:
+    body = it.get("body") or ""
+    data = parse_heading_body(body)
+    t = (data["time"] or "").replace("–","-")
+    dtstart = dtend = None
+    if data["date"] and t:
+        if "-" in t:
+            s,e = [x.strip() for x in t.split("-",1)]
+            dtstart = f"{data['date']} {s}"
+            dtend   = f"{data['date']} {e}"
+        else:
+            dtstart = f"{data['date']} {t.strip()}"
+    events.append({
+        "number": it["number"],
+        "title": data["title"] or it["title"],
+        "description": (data["description"] or "").replace("\n","\\n"),
+        "location": data["location"],
+        "city": data["city"],
+        "url": data["url"],
+        "date": data["date"],
+        "time": data["time"],
+        "dtstart": dtstart,
+        "dtend": dtend
+    })
+
+with open("events.json","w", encoding="utf-8") as f:
+    json.dump(events, f, ensure_ascii=False, indent=2)
+PY
+
+      - name: Sanity check — parsed events
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Parsed events count:"
+          jq 'length' events.json
+          jq '.[0]' events.json || true
+
+
+
+      - name: Build events.ics (Europe/Berlin)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "BEGIN:VCALENDAR" > events.ics
+          echo "PRODID:-//FOSS LÄND Community//Events//DE" >> events.ics
+          echo "VERSION:2.0" >> events.ics
+          echo "CALSCALE:GREGORIAN" >> events.ics
+          echo "METHOD:PUBLISH" >> events.ics
+          echo "X-WR-CALNAME:FOSS LÄND Community-Kalender" >> events.ics
+          echo "X-WR-TIMEZONE:Europe/Berlin" >> events.ics
+          cat << 'EOF' >> events.ics
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+EOF
+
+          python3 - << 'PY' >> events.ics
+import json, datetime
+from datetime import timezone
+
+def ics_dt_local(s):  # "YYYY-MM-DD HH:MM" -> "YYYYMMDDTHHMMSS"
+    return datetime.datetime.strptime(s,"%Y-%m-%d %H:%M").strftime("%Y%m%dT%H%M%S")
+
+events = json.load(open("events.json"))
+now = datetime.datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+for ev in events:
+    if not ev.get("dtstart"):
+        # überspringe, wenn Startzeit fehlt
+        continue
+    uid = f"issue-{ev['number']}-{(ev['date'] or 'unknown')}-{(ev['city'] or 'nocity')}".lower()+"@foss-laend.example.org"
+    summary = f"[Event] {ev['title']}" + (f" — {ev['city']}" if ev.get("city") else "")
+    print("BEGIN:VEVENT")
+    print(f"UID:{uid}")
+    print(f"DTSTAMP:{now}")
+    print(f"SUMMARY:{summary}")
+    if ev.get("description"): print(f"DESCRIPTION:{ev['description']}")
+    if ev.get("location"):    print(f"LOCATION:{ev['location']}")
+    if ev.get("url"):         print(f"URL:{ev['url']}")
+    print(f"DTSTART;TZID=Europe/Berlin:{ics_dt_local(ev['dtstart'])}")
+    if ev.get("dtend"): print(f"DTEND;TZID=Europe/Berlin:{ics_dt_local(ev['dtend'])}")
+    print("STATUS:CONFIRMED")
+    print("END:VEVENT")
+PY
+
+          echo "END:VCALENDAR" >> events.ics
+
+      - name: Guard — ensure VEVENT exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$(grep -c '^BEGIN:VEVENT' events.ics || true)" -eq 0 ]; then
+            echo "::error::events.ics contains no VEVENT entries (empty calendar)."
+            exit 1
+          fi
+
+
 
 
 
@@ -115,11 +253,11 @@ jobs:
           
 
       # --- Bestehender ICS-Build ---
-      - name: Generate events.ics from issues
-        uses: gitevents/ics@v1.4.3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          default-timezone: 'Europe/Berlin'
+#      - name: Generate events.ics from issues
+#        uses: gitevents/ics@v1.4.3
+#        with:
+#          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#          default-timezone: 'Europe/Berlin'
           # locations: 'locations.json'
 
       - name: Commit updated calendar
