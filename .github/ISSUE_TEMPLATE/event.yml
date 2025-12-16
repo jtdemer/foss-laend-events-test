@@ -11,7 +11,23 @@ body:
       description: Titel (de)
     validations:
       required: true
-
+      
+  - type: dropdown
+    id: event-category
+    attributes:
+      label: Event-Kategorie
+      description: Zu welcher Kategorie gehört das Event? (Wichtig für die Filtermöglichkeit im Kalender.)
+      options:
+        - Community Event
+        - Hackathon
+        - Project Event
+        - Science Event
+        - Business Event
+        - Sonstige (bitte im Beschreibungstext näher erläutern)
+      default: 0 # Wählt 'Community Event' als Standard
+    validations:
+      required: true
+      
   - type: textarea
     id: description
     attributes:
@@ -63,18 +79,4 @@ body:
     validations:
       required: true
       
-  - type: dropdown
-    id: event-category
-    attributes:
-      label: Event-Kategorie
-      description: Zu welcher Kategorie gehört das Event? (Wichtig für die Filtermöglichkeit im Kalender.)
-      options:
-        - Community Event
-        - Hackathon
-        - Project Event
-        - Science Event
-        - Business Event
-        - Sonstige (bitte im Beschreibungstext näher erläutern)
-      default: 0 # Wählt 'Community Event' als Standard
-    validations:
-      required: true
+
