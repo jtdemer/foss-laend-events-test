@@ -1,12 +1,78 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>FOSS LÄND Kalender</title>
+</head>
+  <meta charset="UTF-8" />
+  <title>FOSS-LÄND Kalenderle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* Grundlayout */
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #111;
+      background: #fff;
+    }
+
+    /* Kopfbereich mit Titel links und Logo rechts */
+    .site-header {
+      display: flex;
+      align-items: center;       /* vertikal zentriert */
+      justify-content: space-between; /* Titel links, Logo rechts */
+      gap: 16px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #e5e5e5;
+      background: #fafafa;
+    }
+
+    .site-title {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .logo {
+      display: block;
+      height: 48px;   /* feste Höhe, Breite passt sich an */
+      width: auto;    /* proportional skalieren */
+    }
+
+    /* Responsive: auf sehr schmalen Bildschirmen Titel über Logo stapeln */
+    @media (max-width: 460px) {
+      .site-header {
+        flex-direction: column;
+        align-items: flex-start; /* Logo dann links unter dem Titel */
+      }
+    }
+
+    /* Seite/Container */
+    .page {
+      padding: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Kalender-Frame */
+    .calendar-frame {
+      width: 100%;
+      height: 800px;
+      border: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>FOSS LÄND Kalender</h1>
+  <!-- Kopfbereich -->
+  <header class="site-header">
+    <h1 class="site-title">FOSS-LÄND Kalenderle</h1>
+    <!-- Logo rechts: Passe den Pfad zu deinem Logo an -->
+    <img class="logo" src="assets/Logo_Automotive_Softwar_Collaboration_BW.jpg" 
+  </header>
+
+  <main class="page">
+    <p>Hier findest du alle Events rund um FOSS in Baden-Württemberg.</p>
+
+    <!-- Eingebetteter Open Web Calendar -->
   <iframe id="open-web-calendar" 
     style="background:url('https://raw.githubusercontent.com/niccokunzmann/open-web-calendar/master/static/img/loaders/circular-loader.gif') center center no-repeat;"
     src="https://open-web-calendar.hosted.quelltext.eu/calendar.html?language=de&amp;url=https%3A%2F%2Fraw.githubusercontent.com%2Fjtdemer%2Ffoss-laend-events-test%2Frefs%2Fheads%2Fmain%2Fevents.ics"
