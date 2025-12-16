@@ -23,95 +23,90 @@
       line-height: 1.5;
     }
 
-    /* Kopfbereich: Titel links, Logo (SVG) rechts */
+    /* Kopfbereich: Titel links, Logo rechts – kompakt und ohne Umbruch */
     .site-header {
       display: flex;
-      align-items: center;
+      align-items: center;        /* Header wird nicht „hochgezogen“ */
       justify-content: space-between;
       gap: 16px;
-      padding: 16px var(--pad);
+      padding: 12px var(--pad);   /* kleiner als zuvor */
       border-bottom: 1px solid var(--border);
       background: var(--bg-header);
+      flex-wrap: nowrap;          /* sicherstellen, dass nichts in die nächste Zeile geht */
     }
     .site-title {
       margin: 0;
-      font-size: 1.8rem;
+      font-size: 1.6rem;          /* etwas kleiner */
       font-weight: 700;
       letter-spacing: 0.2px;
     }
-
-    /* Logo rechts: JPG proportional, mit Obergrenzen und sauberem Einpassen */
     .logo {
       display: block;
-      height: 96px;         /* Basis-Höhe für Desktop-Kopfzeile */
-      width: auto;          /* Breite proportional */
-      max-width: 280px;     /* falls das Logo sehr breit ist */
-      object-fit: contain;  /* sichert saubere Darstellung, falls width/height gesetzt werden */
+      height: 40px;               /* kompakte Logo-Höhe */
+      width: auto;
+      max-width: 260px;           /* sehr breite Logos begrenzen */
+      object-fit: contain;
     }
 
-
-    /* Seite / Inhalt */
+    /* Seiten-Container für Intro + Kalender */
     .page {
       padding: var(--pad);
       max-width: var(--maxw);
       margin: 0 auto;
     }
     .intro {
-      margin: 0 0 16px 0;
-      font-size: 1.05rem;
+      margin: 0 0 12px 0;
+      font-size: 1.02rem;
       color: #333;
+      text-align: left;
     }
 
-    /* Kalender-iFrame: responsiv + Mindesthöhe */
+    /* Kalender: volle Breite, angenehme Höhe, nicht zu dominant */
     .calendar-frame {
       width: 100%;
-      height: 80vh;         /* 80% der Fensterhöhe */
-      min-height: 720px;    /* nicht kleiner als 720px am Desktop */
+      height: 72vh;          /* etwas niedriger als 80vh, wirkt luftiger */
+      min-height: 640px;     /* Desktop-Mindesthöhe */
       border: none;
       background:
         url('https://raw.githubusercontent.com/niccokunzmann/open-web-calendar/master/static/img/loaders/circular-loader.gif')
         center center no-repeat;
     }
 
-
-    /* Mobile Anpassung: Logo etwas kleiner, damit der Header kompakt bleibt */
+    /* Mobile Feinschliff */
     @media (max-width: 600px) {
-      .logo {
-        height: 40px;
-        max-width: 220px;
-      }
+      .site-header { padding: 10px 16px; }
+      .logo { height: 36px; max-width: 220px; }
+      .site-title { font-size: 1.4rem; }
     }
-    
-    /* Sehr schmale Screens: noch kompakter */
-    @media (max-width: 400px) {
-      .logo {
-        height: 36px;
-        max-width: 200px;
-      }
+    @media (max-width: 460px) {
+      .site-header { flex-direction: column; align-items: flex-start; }
+      .calendar-frame { height: 64vh; min-height: 520px; }
     }
   </style>
 </head>
-
 <body>
-  <!-- Kopfbereich: Titel + echtes JPG-Logo -->
+  <!-- WICHTIG: Header ist nur Titel + Logo und wird korrekt geschlossen -->
   <header class="site-header">
     <h1 class="site-title">FOSS‑LÄND Kalenderle</h1>
-    <img 
+    <img
       class="logo"
-      src="assets/Logo_Automotive_Software_Collaboration_BW.png"
+      src="assets/Logo_Automotive_Software_Collaboration_BW.png" boration BW – Logo">
   </header>
 
-
-  <!-- Inhalt: Beschreibungstext + Kalender -->
+  <!-- Inhalt liegt außerhalb des Headers -->
   <main class="page">
-    <p class="intro">Hier findest du alle Veranstaltungen rund um Freie und Open‑Source‑Software (FOSS) in Baden‑Württemberg.</p>
+    <p class="intro">
+      Hier findest du alle Veranstaltungen rund um Freie und Open‑Source‑Software (FOSS) in Baden‑Württemberg.
+    </p>
 
     <iframe
       class="calendar-frame"
       id="open-web-calendar"
-      title="FOSS‑LÄND – Kalender"
+      title="FOSS‑LÄND – Kalenderle"
       src="https://open-web-calendar.hosted.quelltext.eu/calendar.html?language=de&url=https%3A%2F%2Fraw.githubusercontent.com%2Fjtdemer%2Ffoss-laend-events-test%2Frefs%2Fheads%2Fmain%2Fevents.ics"
-      sandboxdie <atps://raw.githubusercontent.com/jtdemer/foss-laend-events-test/refs/heads/main/events.icsICS-Datei</a> herunterladen.</p>
+      sandbox="allow-scripts allow-same-origin"
+      loading="lazy"
+      referrerts-test/refs/headsnts.icsICS-Datei      referrerts-test/refs/headsnts.icsICS-Datei</a> herunterladen.</p>
     </noscript>
   </main>
 </body>
