@@ -1,6 +1,6 @@
 name: Event einreichen
 description: Veranstaltung rund um FOSS in Baden‑Württemberg melden
-title: "[Event-Title] - City"
+title: "[Title] - City"
 labels: ["event:submitted"]
 
 body:
