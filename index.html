@@ -3,10 +3,9 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>FOSS-LÄND Kalenderle</title>
+  <title>FOSS‑LÄND Kalenderle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* Grundlayout */
     :root {
       --pad: 24px;
       --border: #e5e5e5;
@@ -21,85 +20,89 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
       color: var(--text);
       background: var(--bg);
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
-    /* Kopfbereich mit Titel links und Logo rechts */
+    /* Kopfbereich: Titel links, Logo (SVG) rechts */
     .site-header {
       display: flex;
-      align-items: center;             /* vertikal zentriert */
-      justify-content: space-between;  /* Titel links, Logo rechts */
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
       padding: 16px var(--pad);
       border-bottom: 1px solid var(--border);
       background: var(--bg-header);
     }
-
     .site-title {
       margin: 0;
       font-size: 1.8rem;
       font-weight: 700;
       letter-spacing: 0.2px;
     }
-
     .logo {
       display: block;
-      height: 48px;   /* feste Höhe, Breite passt sich an */
-      width: auto;    /* proportional skalieren */
+      height: 48px;     /* Logo-Größe hier anpassen, falls gewünscht */
+      width: auto;
     }
 
-    /* Seite/Container unter der Kopfzeile */
+    /* Seite / Inhalt */
     .page {
       padding: var(--pad);
       max-width: var(--maxw);
       margin: 0 auto;
     }
-
     .intro {
-      margin: 0 0 16px 0; /* Abstand unter dem Text */
+      margin: 0 0 16px 0;
       font-size: 1.05rem;
       color: #333;
     }
 
-    /* Kalender-Frame */
+    /* Kalender-iFrame: responsiv + Mindesthöhe */
     .calendar-frame {
       width: 100%;
-      height: 800px;  /* bei Bedarf anpassen */
+      height: 80vh;         /* 80% der Fensterhöhe */
+      min-height: 720px;    /* nicht kleiner als 720px am Desktop */
       border: none;
-      /* Optional hübsche Kante:
-      border: 1px solid var(--border);
-      border-radius: 8px; */
+      background:
+        url('https://raw.githubusercontent.com/niccokunzmann/open-web-calendar/master/static/img/loaders/circular-loader.gif')
+        center center no-repeat;
     }
 
-    /* Responsive: auf sehr schmalen Bildschirmen Titel über Logo stapeln */
+    /* Mobile */
     @media (max-width: 460px) {
-      .site-header {
-        flex-direction: column;
-        align-items: flex-start; /* Logo dann links unter dem Titel */
-      }
+      .site-header { flex-direction: column; align-items: flex-start; }
       .logo { height: 40px; }
+      .calendar-frame {
+        height: 70vh;
+        min-height: 520px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Kopfbereich: nur Titel + Logo! -->
+  <!-- Kopfbereich: Titel + eingebettetes SVG-Logo (keine externe Datei nötig) -->
   <header class="site-header">
-    <h1 class="site-title">FOSS-LÄND Kalenderle</h1>
-    <img class="logo"
-         src="assets/Logo_Automotive_Softwar_Collaboration_BW.jpg
+    <h1 class="site-title">FOSS‑LÄND Kalenderle</h1>
+    <!-- Inline-SVG als Logo-Platzhalter -->
+    <svg class="logo" viewBox="0 0 180 48" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FOSS LÄND">
+      <rect x="0" y="0" width="180" height="48" rx="6" fill="#19324A"/>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle"
+            font-family="Segoe UI, Roboto, Arial, sans-serif" font-size="18"
+            fill="#FFFFFF" letter-spacing="1">FOSS LÄND</text>
+    </svg>
   </header>
 
-
+  <!-- Inhalt: Beschreibungstext + Kalender -->
   <main class="page">
-    <p>Hier findest du alle Events rund um FOSS in Baden-Württemberg.</p>
+    <p class="intro">Hier findest du alle Veranstaltungen rund um Freie und Open‑Source‑Software (FOSS) in Baden‑Württemberg.</p>
 
-    <!-- Eingebetteter Open Web Calendar -->
-  <iframe id="open-web-calendar" 
-    style="background:url('https://raw.githubusercontent.com/niccokunzmann/open-web-calendar/master/static/img/loaders/circular-loader.gif') center center no-repeat;"
-    src="https://open-web-calendar.hosted.quelltext.eu/calendar.html?language=de&amp;url=https%3A%2F%2Fraw.githubusercontent.com%2Fjtdemer%2Ffoss-laend-events-test%2Frefs%2Fheads%2Fmain%2Fevents.ics"
-    sandbox="allow-scripts allow-same-origin allow-top-navigation allow-downloads"
-    allowTransparency="true" scrolling="no" 
-    frameborder="0" height="895px" width="100%"></iframe>
-
-         
+    <iframe
+      class="calendar-frame"
+      id="open-web-calendar"
+      title="FOSS‑LÄND – Kalender"
+      src="https://open-web-calendar.hosted.quelltext.eu/calendar.html?language=de&url=https%3A%2F%2Fraw.githubusercontent.com%2Fjtdemer%2Ffoss-laend-events-test%2Frefs%2Fheads%2Fmain%2Fevents.ics"
+      sandboxdie <atps://raw.githubusercontent.com/jtdemer/foss-laend-events-test/refs/heads/main/events.icsICS-Datei</a> herunterladen.</p>
+    </noscript>
+  </main>
+</body>
 
