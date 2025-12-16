@@ -16,7 +16,7 @@ body:
     id: event-category
     attributes:
       label: Category
-      description: Zu welcher Kategorie gehört das Event? (Wichtig für die Filtermöglichkeit im Kalender.)
+      description: Zu welcher Kategorie gehört das Event? 
       options:
         - Community Event
         - Hackathon
