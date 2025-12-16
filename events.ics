@@ -29,7 +29,7 @@ DTSTAMP:20251216T090943Z
 SUMMARY:[Event] FOSS Test Event — Stuttgart
 DESCRIPTION:Hier wird getetstet.
 LOCATION:Feuersee
-URL:www.foss.e-mobilbw.de
+URL:https://www.foss.e-mobilbw.de
 DTSTART;TZID=Europe/Berlin:20251216T140000
 DTEND;TZID=Europe/Berlin:20251216T163000
 STATUS:CONFIRMED
@@ -40,7 +40,7 @@ DTSTAMP:20251216T090943Z
 SUMMARY:[Event] FOSS Test — Stuttgart
 DESCRIPTION:Hier wird getestet!
 LOCATION:Feuersee
-URL:https://www.foss.test.de
+URL:https://www.foss.events
 DTSTART;TZID=Europe/Berlin:20251214T180000
 DTEND;TZID=Europe/Berlin:20251214T200000
 STATUS:CONFIRMED
