@@ -1,33 +1,43 @@
 
 <!DOCTYPE html>
-<html>
-</head>
+<html lang="de">
+<head>
   <meta charset="UTF-8" />
   <title>FOSS-LÄND Kalenderle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     /* Grundlayout */
+    :root {
+      --pad: 24px;
+      --border: #e5e5e5;
+      --bg: #fff;
+      --bg-header: #fafafa;
+      --text: #111;
+      --maxw: 1200px;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
-      color: #111;
-      background: #fff;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.45;
     }
 
     /* Kopfbereich mit Titel links und Logo rechts */
     .site-header {
       display: flex;
-      align-items: center;       /* vertikal zentriert */
-      justify-content: space-between; /* Titel links, Logo rechts */
+      align-items: center;             /* vertikal zentriert */
+      justify-content: space-between;  /* Titel links, Logo rechts */
       gap: 16px;
-      padding: 16px 24px;
-      border-bottom: 1px solid #e5e5e5;
-      background: #fafafa;
+      padding: 16px var(--pad);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-header);
     }
 
     .site-title {
       margin: 0;
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       font-weight: 700;
       letter-spacing: 0.2px;
     }
@@ -38,36 +48,47 @@
       width: auto;    /* proportional skalieren */
     }
 
+    /* Seite/Container unter der Kopfzeile */
+    .page {
+      padding: var(--pad);
+      max-width: var(--maxw);
+      margin: 0 auto;
+    }
+
+    .intro {
+      margin: 0 0 16px 0; /* Abstand unter dem Text */
+      font-size: 1.05rem;
+      color: #333;
+    }
+
+    /* Kalender-Frame */
+    .calendar-frame {
+      width: 100%;
+      height: 800px;  /* bei Bedarf anpassen */
+      border: none;
+      /* Optional hübsche Kante:
+      border: 1px solid var(--border);
+      border-radius: 8px; */
+    }
+
     /* Responsive: auf sehr schmalen Bildschirmen Titel über Logo stapeln */
     @media (max-width: 460px) {
       .site-header {
         flex-direction: column;
         align-items: flex-start; /* Logo dann links unter dem Titel */
       }
-    }
-
-    /* Seite/Container */
-    .page {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    /* Kalender-Frame */
-    .calendar-frame {
-      width: 100%;
-      height: 800px;
-      border: none;
+      .logo { height: 40px; }
     }
   </style>
 </head>
 <body>
-  <!-- Kopfbereich -->
+  <!-- Kopfbereich: nur Titel + Logo! -->
   <header class="site-header">
     <h1 class="site-title">FOSS-LÄND Kalenderle</h1>
-    <!-- Logo rechts: Passe den Pfad zu deinem Logo an -->
-    <img class="logo" src="assets/Logo_Automotive_Softwar_Collaboration_BW.jpg" 
+    <img class="logo"
+         src="assets/Logo_Automotive_Softwar_Collaboration_BW.jpg
   </header>
+
 
   <main class="page">
     <p>Hier findest du alle Events rund um FOSS in Baden-Württemberg.</p>
