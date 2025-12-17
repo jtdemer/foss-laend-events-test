@@ -87,12 +87,17 @@ jobs:
             process.exit(1);
           }
 
-          // Time validieren: "HH:MM" oder "HH:MM–HH:MM" (mit EN-Dash oder Bindestrich)
+          // Time validieren: Akzeptiert H:MM, HH:MM, H:MM–H:MM oder HH:MM–HH:MM
           const time = getText(data['time']);
           const dash = '[–-]'; // EN-Dash oder Bindestrich
-          const timeRe = new RegExp(`^\\d{2}:\\d{2}(${dash}\\d{2}:\\d{2})?$`);
+          
+          // Erläuterung der Regex:
+          // ^\d{1,2}:\d{2}           -> Startet mit 1 oder 2 Ziffern für die Stunde, gefolgt von : und 2 Ziffern für die Minute
+          // (${dash}\d{1,2}:\d{2})?  -> Optionaler Teil für die Endzeit (Bindestrich + 1-2 stellige Stunde)
+          const timeRe = new RegExp(`^\\d{1,2}:\\d{2}(${dash}\\d{1,2}:\\d{2})?$`);
+          
           if (!timeRe.test(time)) {
-            console.error('❌ Ungültige Zeit (erwartet HH:MM oder HH:MM–HH:MM):', time);
+            console.error('❌ Ungültige Zeit (erwartet H:MM oder HH:MM, ggf. mit Zeitraum):', time);
             process.exit(1);
           }
 
