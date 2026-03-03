@@ -24,23 +24,34 @@ RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
 END:STANDARD
 END:VTIMEZONE
 BEGIN:VEVENT
+UID:issue-7-2026-03-24-stuttgart@foss-laend.example.org
+DTSTAMP:20260303T135312Z
+SUMMARY:[Event] OpenChain and Friends 2026 — Stuttgart
+DESCRIPTION:How can we enable responsible, scalable open-source use across the software supply chain? [OpenChain and Friends](https://openchainproject.org/news/2025/12/09/openchain-and-friends-2026) brings together community, industry, research, and public sector—featuring concise expert inputs, hands-on sessions, and ample space for exchange.
+LOCATION:Robert Bosch GmbH – Service and Supply Chain Campus (SCC) Feuerbach, Bregenzer Str. 26A, 70469 Stuttgart
+URL:https://openchainproject.org/news/2025/12/09/openchain-and-friends-2026
+DTSTART;TZID=Europe/Berlin:20260324T090000
+DTEND;TZID=Europe/Berlin:20260324T190000
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
 UID:issue-5-2025-12-16-stuttgart@foss-laend.example.org
-DTSTAMP:20251216T090943Z
+DTSTAMP:20260303T135312Z
 SUMMARY:[Event] FOSS Test Event — Stuttgart
 DESCRIPTION:Hier wird getetstet.
 LOCATION:Feuersee
-URL:https://www.foss.e-mobilbw.de
+URL:www.foss.e-mobilbw.de
 DTSTART;TZID=Europe/Berlin:20251216T140000
 DTEND;TZID=Europe/Berlin:20251216T163000
 STATUS:CONFIRMED
 END:VEVENT
 BEGIN:VEVENT
 UID:issue-4-2025-12-14-stuttgart@foss-laend.example.org
-DTSTAMP:20251216T090943Z
+DTSTAMP:20260303T135312Z
 SUMMARY:[Event] FOSS Test — Stuttgart
 DESCRIPTION:Hier wird getestet!
 LOCATION:Feuersee
-URL:https://www.foss.events
+URL:https://www.foss.test.de
 DTSTART;TZID=Europe/Berlin:20251214T180000
 DTEND;TZID=Europe/Berlin:20251214T200000
 STATUS:CONFIRMED
